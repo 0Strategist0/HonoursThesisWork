@@ -62,7 +62,8 @@ def main() -> None:
     BATCH_NORMALIZATION = False
     
     # Training settings
-    OPTIMIZER = k.optimizers.Adam(learning_rate=0.0001, clipnorm=0.01)#k.optimizers.SGD(momentum=0.9, nesterov=True, learning_rate=0.000001)
+    OPTIMIZER = k.optimizers.Adam(learning_rate=0.0001, clipnorm=0.01)
+    #k.optimizers.SGD(momentum=0.9, nesterov=True, learning_rate=0.000001)
     EPOCHS = 500_000
     PATIENCE = 15
     MIN_DELTA = 0.0
@@ -76,7 +77,8 @@ def main() -> None:
     CHECKPOINT_PERIOD = 100
     
     # Saving
-    SAVE_DIRECTORY = (f"/home/kye/projects/ctb-stelzer/kye/HWWTraining/Results/FullScoreTest/MSEFRAC{float_to_string(MSE_FRAC)}_SCORESUBFRAC{float_to_string(SCORE_SUBFRAC)}")
+    SAVE_DIRECTORY = (f"/home/kye/projects/ctb-stelzer/kye/HWWTraining/Results/FullScoreTest/MSEFRAC"
+                      f"{float_to_string(MSE_FRAC)}_SCORESUBFRAC{float_to_string(SCORE_SUBFRAC)}")
     NETWORK_NAME = f"cHW_score_test_30x30x30"
     
     
@@ -449,7 +451,8 @@ def make_comparisons(n_alpha: k.models.Model,
     for output, val_ratio, log_error, coef in zip(outputs, val_ratios, root_mean_square_log_error, coefficients):
         plt.figure(constrained_layout=True)
         plt.axline((0.0, 0.0), slope=1.0, ls="--", c="r", zorder=0)
-        plt.hist2d(np.log(np.squeeze(val_ratio)), np.log(np.squeeze(output)), bins=1000, weights=np.squeeze(event_weights), norm=mpl.colors.LogNorm())
+        plt.hist2d(np.log(np.squeeze(val_ratio)), np.log(np.squeeze(output)), bins=1000, weights=np.squeeze(event_weights), 
+                   norm=mpl.colors.LogNorm())
         plt.xlabel("True log of Cross Section Ratios")
         plt.ylabel("Estimated log of Cross Section Ratios")
         plt.title(f"{network_name} at c = {coef}\nRMSLE = {log_error:.5}")
