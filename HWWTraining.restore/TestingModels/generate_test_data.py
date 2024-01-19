@@ -69,9 +69,6 @@ def main() -> None:
         np.concatenate((np.sign(n_samples)[indices][:, np.newaxis], data.to_numpy()[indices][:, KINEMATIC_COLUMNS]), axis=1), 
         columns=["sign"] + list(data.columns[KINEMATIC_COLUMNS]))
     
-    print(fake_data)
-    print(fake_data.shape)
-    
     # Save it
     fake_data.to_pickle(FAKE_DATA_SAVE_PATH)
     
@@ -80,9 +77,6 @@ def main() -> None:
         data[WEIGHT_COLUMN_NAMES_TO_SAVE].to_numpy()[indices], 
         columns = WEIGHT_COLUMN_NAMES_TO_SAVE
     )
-    
-    print(fake_weights)
-    print(fake_weights.shape)
     
     # Save it
     fake_weights.to_pickle(FAKE_WEIGHTS_SAVE_PATH)
