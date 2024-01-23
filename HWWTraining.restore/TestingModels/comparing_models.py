@@ -29,10 +29,14 @@ import matplotlib.pyplot as plt
 # Main function
 def main() -> None:
     
+    print("\n" + "START".center(50, "-"))
+    
     # Loading data
     TEST_DATA_PATH = "/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/TestingModels/FakeData/fake_data_c=0.05.pkl"
     TEST_WEIGHTS_PATH = "/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/TestingModels/FakeData/fake_weights_c=0.05.pkl"
     MODEL_DIRECTORY = "/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/Results/FullScoreTest"
+    
+    print("\n" + "LOADING DATA".center(50, "-"))
     
     # Load and format the test data
     with open(TEST_DATA_PATH, "rb") as datafile:
@@ -43,18 +47,24 @@ def main() -> None:
         weights = pkl.load(datafile)
     comparison_coefficients = [string_to_float(column) if not "sm" in column else 0.0 for column in weights.columns]
     
-    print(comparison_coefficients)
+    print("\n" + "SEARCHING FOR MODELS".center(50, "-"))
     
     # Load all the model paths from the directory into a dictionary
     files = glob.glob(MODEL_DIRECTORY + "/*/")
     titles = [list(filter(lambda item: item != "", file.split("/")))[-1] for file in files]
     
+    print("\n" + "EVALUATING PERFORMANCES".center(50, "-"))
+    
     # Iteratively evaluate each model on the test data and store its performance metrics and some plots
     performances = {}
     for file, title in zip(files, titles):
+        print("\n" + f"STARTING {title}".center(50, "-"))
+        
         # Get the paths to the alpha and beta models
         alpha_path = next(filter(lambda name: "alpha" in name, glob.glob(file + "/*/")), None)
         beta_path = next(filter(lambda name: "beta" in name, glob.glob(file + "/*/")), None)
+        
+        print("\n" + "LOADING MODELS".center(50, "-"))
         
         # Load the submodels
         alpha = km.load_model(alpha_path, compile=False)
@@ -74,24 +84,37 @@ def main() -> None:
             """
             return (1.0 + coefficient * alpha(kinematics)[..., 0]) ** 2.0 + (coefficient * beta(kinematics)[..., 0]) ** 2.0
         
+        print("\n" + "CALCULATING ESTIMATES".center(50, "-"))
+        
         # Get the ratio estimates
         ratio_estimates = np.asarray([ratio_estimate(kinematics, coefficient) for coefficient in comparison_coefficients]).T
         # Get the actual ratios
         true_ratios = np.asarray(weights) / np.asarray(weights)[:, 0:1]
         
+        print("\n" + "CALCULATING CHI-SQUARED".center(50, "-"))
+        
         # Chi squared calculation
         ratio_residuals = ratio_estimates - true_ratios
-        
         chi_squared = np.sum(ratio_residuals ** 2.0, axis=0)
-        print(chi_squared)
         
+        performances[title] = chi_squared
+        print(performances)
         
         ####### TODO
         # Store chi_squared, maybe residuals in dictionary
         # Compare them between models
         # Maybe test confidence intervals directly
     
+    print("\n" + "PLOTTING".center(50, "-"))
     # Display the performance metrics for each model and make some plots to compare them
+    for name, values in performances.items():
+        plt.plot(comparison_coefficients, values, label=name)
+    plt.yscale("symlog")
+    plt.legend()
+    plt.xlabel("Tested Coefficient Value")
+    plt.ylabel("Chi-Squared of Model")
+    plt.title("Comparison of Different Models")
+    plt.savefig("model_comparison.png")
     
     
 def string_to_float(string: str) -> float:
