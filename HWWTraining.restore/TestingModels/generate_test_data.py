@@ -24,7 +24,7 @@ def main() -> None:
     # Constants for reading data
     DATA_PATH = "/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/Data/shuffled_data.pkl"
     C_PREFIX = "weight_cHW_"
-    C_VALUE = 0.05
+    C_VALUE = -0.05
     KINEMATIC_COLUMNS = np.arange(2, 39)
     WEIGHT_COLUMN_NAMES_TO_SAVE = ['weight_sm', 'weight_cHW_pos0p01', 'weight_cHW_pos0p02', 'weight_cHW_pos0p05', 
                                    'weight_cHW_pos0p1', 'weight_cHW_pos0p2', 'weight_cHW_pos0p5', 'weight_cHW_pos1p0', 
