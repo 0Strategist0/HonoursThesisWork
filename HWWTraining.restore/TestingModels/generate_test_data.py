@@ -22,10 +22,10 @@ import pickle as pkl
 def main() -> None:
     
     # Constants for reading data
-    DATA_PATH = "/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/Data/shuffled_data.pkl"
+    DATA_PATH = "/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/Data/cHW_events.pkl"
     C_PREFIX = "weight_cHW_"
-    C_VALUE = -0.05
-    KINEMATIC_COLUMNS = np.arange(2, 39)
+    C_VALUE = 0.05
+    KINEMATIC_COLUMNS = np.arange(0, 37)
     WEIGHT_COLUMN_NAMES_TO_SAVE = ['weight_sm', 'weight_cHW_pos0p01', 'weight_cHW_pos0p02', 'weight_cHW_pos0p05', 
                                    'weight_cHW_pos0p1', 'weight_cHW_pos0p2', 'weight_cHW_pos0p5', 'weight_cHW_pos1p0', 
                                    'weight_cHW_pos2p0', 'weight_cHW_neg0p01', 'weight_cHW_neg0p02', 'weight_cHW_neg0p05', 
@@ -43,12 +43,6 @@ def main() -> None:
     
     # Load the set of events and weights
     data = pd.read_pickle(DATA_PATH)
-    
-    
-    # Iterate through the events and weights to get corrected weights
-    for name in data.columns:
-        if "weight_" in name:
-            data[name] *= data["weight"]
     
     # Get the array of weights for each event at the given Wilson Coefficient value
     weights = (data[C_PREFIX + float_to_string(C_VALUE)] if C_VALUE != 0.0 else data["weight_sm"]).to_numpy()

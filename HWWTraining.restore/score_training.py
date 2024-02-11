@@ -46,18 +46,18 @@ def main() -> None:
     job_number = int(job_number) if job_number is not None else None
     
     # Loading data
-    PATH_TO_DATA = "/home/kye/projects/ctb-stelzer/kye/HWWTraining/Data/augmented_data.pkl"
+    PATH_TO_DATA = "/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/Data/cHW_events.pkl"
     C_VALUE_PREFIX = "weight_cHW_"
-    KINEMATIC_COLUMNS = np.arange(2, 39)
+    KINEMATIC_COLUMNS = np.arange(0, 37)
     RANDOMIZE_DATA = True
     
     # What data to use for training
-    TRAINING_SLICE = slice(None, -1_000_000)
+    TRAINING_SLICE = slice(None, None)
     BATCH_SIZE = int(2 ** 20)
     COEF_VALUES = (-2.0, -1.0, -0.5, -0.2, -0.1, -0.05, -0.02, -0.01, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0)
     
     # Network configuration
-    HIDDEN_LAYERS = (30, 30, 30)
+    HIDDEN_LAYERS = (100, 100, 100, 100)
     DROPOUT_FRAC = 0.0
     BATCH_NORMALIZATION = False
     
@@ -65,21 +65,21 @@ def main() -> None:
     OPTIMIZER = k.optimizers.Adam(learning_rate=0.0001, clipnorm=0.01)
     #k.optimizers.SGD(momentum=0.9, nesterov=True, learning_rate=0.000001)
     EPOCHS = 500_000
-    PATIENCE = 15
+    PATIENCE = 50
     MIN_DELTA = 0.0
     REDUCE_LR_ON_PLATEAU = False
-    VALIDATION_SPLIT = 0.2
-    MSE_FRAC = (job_number % 5) / (5.0 - 1.0)
-    SCORE_SUBFRAC = (job_number // 5) / (5.0 - 1.0)
+    VALIDATION_SPLIT = 0.1
+    MSE_FRAC = 1.0 - 0.25 * (job_number % 3)
+    SCORE_SUBFRAC = 1.0 - 0.25 * (job_number // 3)
     
     # Checkpointing
     CHECKPOINT_PATH = None #f"/project/6024950/kye/HWWTraining/Checkpoints/{LOSS_TYPE}"
     CHECKPOINT_PERIOD = 100
     
     # Saving
-    SAVE_DIRECTORY = (f"/home/kye/projects/ctb-stelzer/kye/HWWTraining/Results/FullScoreTest/MSEFRAC"
+    SAVE_DIRECTORY = (f"/home/kye/projects/ctb-stelzer/kye/HWWTraining/Results/BiggerNet/MSEFRAC"
                       f"{float_to_string(MSE_FRAC)}_SCORESUBFRAC{float_to_string(SCORE_SUBFRAC)}")
-    NETWORK_NAME = f"cHW_score_test_30x30x30"
+    NETWORK_NAME = f"cHW_score_test_{str(HIDDEN_LAYERS).strip("()").replace(", ", "x")}"
     
     
     # Make directory for saving

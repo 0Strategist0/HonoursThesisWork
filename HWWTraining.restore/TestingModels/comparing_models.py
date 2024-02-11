@@ -35,12 +35,12 @@ def main() -> None:
     print("\n" + "START".center(50, "-"))
     
     # Loading data
-    P_VALUE = 0.68
-    C = 0.05
+    P_VALUE = 0.95
+    C = 0.0
     TEST_DATA_PATH = f"/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/TestingModels/FakeData/fake_data_c={C}.pkl"
     TEST_WEIGHTS_PATH = f"/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/TestingModels/FakeData/fake_weights_c={C}.pkl"
     MODEL_DIRECTORY = "/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/Results/FullScoreTest"
-    TOTAL_DATA_PATH = "/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/Data/shuffled_data.pkl"
+    TOTAL_DATA_PATH = "/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/Data/cHW_events.pkl"
     
     print("\n" + "LOADING DATA".center(50, "-"))
     
@@ -113,20 +113,35 @@ def main() -> None:
             return (total_num_estimate(coefficient=coefficient) - total_num_estimate(coefficient=0.0) 
                     - np.sum(multiples * np.log(ratio_estimate(kinematics=kinematics, coefficient=coefficient))))
         
+        # plt.clf()
+        # plt.plot(comparison_coefficients, [total_num_estimate(c) - total_num_estimate(0.0) 
+        #                                    - np.sum(np.log(weights.to_numpy()[:, index] / weights["weight_sm"].to_numpy())) for index, c in enumerate(comparison_coefficients)], label="true")
+        # plt.plot(comparison_coefficients, [llr_estimate(kinematics, c) for index, c in enumerate(comparison_coefficients)], label="estimate")
+        # plt.legend()
+        # plt.axvline(C)
+        # plt.savefig(f"/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/TestingModels/testing{C}.png")
+        # plt.clf()
+        # plt.plot(comparison_coefficients, [-np.sum(np.log(weights.to_numpy()[:, index] / weights["weight_sm"].to_numpy())) for index, c in enumerate(comparison_coefficients)], label="true")
+        # plt.plot(comparison_coefficients, [- np.sum(multiples * np.log(ratio_estimate(kinematics=kinematics, coefficient=c))) for index, c in enumerate(comparison_coefficients)], label="estimate")
+        # plt.legend()
+        # plt.savefig(f"/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/TestingModels/testing_just_weights{C}.png")
+        
         plt.clf()
-        plt.plot(comparison_coefficients, [total_num_estimate(c) - total_num_estimate(0.0) 
-                                           - np.sum(np.log(weights.to_numpy()[:, index] / weights["weight_sm"].to_numpy())) for index, c in enumerate(comparison_coefficients)])
-        plt.savefig(f"/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/TestingModels/testing{C}.png")
+        reduced_chi_sq = np.sum((np.array([np.log(weights.to_numpy()[:, index] / weights["weight_sm"].to_numpy()) for index, c in enumerate(comparison_coefficients)]) - np.array([np.log(ratio_estimate(kinematics=kinematics, coefficient=c)) for index, c in enumerate(comparison_coefficients)]))**2.0, axis=-1) / weights.shape[0]
+        plt.plot(comparison_coefficients, reduced_chi_sq)
+        plt.savefig(f"/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/TestingModels/weight_reduced_chi_sq{C}.png")
+        
         
         # # Get the maximum log likelihood ratio
         # opt = spo.minimize_scalar(lambda x: llr_estimate(kinematics=kinematics, coefficient=x), 
         #                             bracket=(-10.0, 10.0), 
         #                             tol=1e-8)
         # print(f"minimum found at {opt}")
-        # max_val = -opt.fun
+        # min_val = opt.fun
+        
         # # Define the test statistic with it
         # def test_stat(kinematics: npt.ArrayLike, coefficient: float) -> float:
-        #     return -2.0 * (llr_estimate(kinematics=kinematics, coefficient=coefficient) - max_val)
+        #     return -2.0 * (min_val - llr_estimate(kinematics=kinematics, coefficient=coefficient))
         
         # # Get alpha value
         # cutoff = spsd.chi2.ppf(P_VALUE, df=1)
@@ -139,13 +154,13 @@ def main() -> None:
         # # Temporary testing
         # plt.clf()
         # c_tests = np.linspace(left_root - 0.01, right_root + 0.01, 50)
-        # llr_estimate_values = np.array([llr_estimate(kinematics=kinematics, coefficient=c) for c in c_tests])
-        # plt.scatter(c_tests, llr_estimate_values, marker=".")
+        # test_stat_estimate_values = np.array([test_stat(kinematics=kinematics, coefficient=c) for c in c_tests])
+        # plt.scatter(c_tests, test_stat_estimate_values, marker=".")
         # plt.axhline(cutoff)
         # plt.axvline(left_root)
         # plt.axvline(right_root)
         # plt.xlabel("c values")
-        # plt.ylabel("llr_estimate")
+        # plt.ylabel("test_statistic")
         # plt.title(f"Log-Likelihood Ratio Estimate vs. Coefficient (in [{left_root}, {right_root}])")
         # plt.savefig(f"/home/kye/projects/ctb-stelzer/kye/HWWTraining.restore/TestingModels/llr_test_c={C}_{title}.png")
         # print("plotted a thing")
@@ -212,10 +227,6 @@ def build_total_num_estimate(datapath: str) -> ty.Callable[[npt.ArrayLike], np.n
     
     with open(datapath, "rb") as datafile:
         data = pkl.load(datafile)
-        # Iterate through the events and weights to get corrected weights
-        for name in data.columns:
-            if "weight_" in name:
-                data[name] *= data["weight"]
     
         weight_columns = list(filter(lambda name: "weight_" in name, data.columns))
         data = data[weight_columns].sum(axis=0).to_numpy()
